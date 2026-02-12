@@ -41,7 +41,7 @@ The real power of the scanner comes from its configurable patterns. It uses a `p
 crypto-debt-scanner /path/to/your/project --patterns /path/to/my_patterns.json
 ```
 
-The JSON file should be structured by category, with a list of rules for each. Each rule must have a `pattern` and a `description`, and can optionally have a `severity` (`High`, `Medium`, `Low`).
+The JSON file should be structured by category, with a list of rules for each. Each rule must have a `pattern` (a valid Python regular expression), a `description`, and can optionally have a `severity` (`High`, `Medium`, `Low`).
 
 #### Example `patterns.json`
 

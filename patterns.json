@@ -1,54 +1,54 @@
 {
   "Hashing": [
     {
-      "pattern": "MD5",
-      "description": "MD5 is a broken hash function and should not be used for security-related purposes.",
+      "pattern": "\\bMD5\\b",
+      "description": "MD5 is a broken hash function and should not be used for security-related purposes. This pattern looks for the whole word 'MD5'.",
       "severity": "High"
     },
     {
-      "pattern": "SHA1",
-      "description": "SHA1 has known collision vulnerabilities and should be replaced with SHA-256 or stronger.",
+      "pattern": "\\bSHA1\\b",
+      "description": "SHA1 has known collision vulnerabilities and should be replaced with SHA-256 or stronger. This pattern looks for the whole word 'SHA1'.",
       "severity": "High"
     }
   ],
   "Insecure Encryption": [
     {
-      "pattern": "RSA.encrypt",
+      "pattern": "\\bRSA\\.encrypt\\b",
       "description": "Raw RSA encryption is insecure without proper padding (e.g., OAEP).",
       "severity": "High"
     },
     {
-      "pattern": "ECB mode",
+      "pattern": "\\bMODE_ECB\\b",
       "description": "AES in ECB mode is not semantically secure and leaks pattern information. Use CBC, GCM, or CTR.",
       "severity": "High"
     },
     {
-      "pattern": "DES",
+      "pattern": "\\bDES\\b",
       "description": "The Data Encryption Standard (DES) is obsolete and vulnerable to brute-force attacks.",
       "severity": "High"
     }
   ],
   "Unsafe Functions (C/C++)": [
     {
-      "pattern": "strcpy",
+      "pattern": "\\bstrcpy\\s*\\(",
       "description": "strcpy is not buffer-safe and can lead to buffer overflow vulnerabilities. Use strncpy or strcpy_s.",
       "severity": "Medium"
     },
     {
-      "pattern": "sprintf",
+      "pattern": "\\bsprintf\\s*\\(",
       "description": "sprintf is not buffer-safe and can lead to buffer overflow vulnerabilities. Use snprintf.",
       "severity": "Medium"
     },
     {
-      "pattern": "gets",
+      "pattern": "\\bgets\\s*\\(",
       "description": "gets is extremely dangerous as it does not perform bounds checking. It should never be used.",
       "severity": "High"
     }
   ],
   "Insecure Randomness": [
     {
-      "pattern": "random()",
-      "description": "Standard random number generators are often predictable and not suitable for cryptographic operations. Use a cryptographically secure pseudo-random number generator (CSPRNG).",
+      "pattern": "\\brandom\\s*\\(",
+      "description": "Standard 'random' functions are often predictable and not suitable for cryptographic operations. Use a cryptographically secure pseudo-random number generator (CSPRNG).",
       "severity": "Medium"
     }
   ]
