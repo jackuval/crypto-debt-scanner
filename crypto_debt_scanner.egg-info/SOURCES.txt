@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+scanner.py
+crypto_debt_scanner.egg-info/PKG-INFO
+crypto_debt_scanner.egg-info/SOURCES.txt
+crypto_debt_scanner.egg-info/dependency_links.txt
+crypto_debt_scanner.egg-info/entry_points.txt
+crypto_debt_scanner.egg-info/top_level.txt
+tests/test_scanner.py

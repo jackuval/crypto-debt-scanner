@@ -1,4 +1,19 @@
-# Crypto-Debt Scanner v1.0.0
+Metadata-Version: 2.4
+Name: crypto-debt-scanner
+Version: 0.7.0
+Summary: A simple CLI tool to scan codebases for outdated and vulnerable cryptographic patterns.
+Author-email: Jack Uval <hello@jackuval.xyz>
+Project-URL: Homepage, https://github.com/jack-uval/crypto-debt-scanner
+Project-URL: Bug Tracker, https://github.com/jack-uval/crypto-debt-scanner/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Security
+Classifier: Topic :: Software Development
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+
+# Crypto-Debt Scanner
 
 A simple, fast, and configurable CLI tool to scan your codebase for outdated and vulnerable cryptographic patterns.
 
@@ -6,7 +21,7 @@ A simple, fast, and configurable CLI tool to scan your codebase for outdated and
 
 Over time, cryptographic standards evolve. Algorithms and protocols that were once considered secure (like MD5 or SHA1) are now known to be vulnerable. This "crypto-debt" can silently accumulate in a codebase, creating significant security risks that may not be apparent until it's too late. This tool helps you identify this debt so you can prioritize and fix it.
 
-This tool will be published to PyPI to be installable via `pip install crypto-debt-scanner` as soon as API tokens are available.
+## Installation
 
 ```bash
 # Clone the repository
