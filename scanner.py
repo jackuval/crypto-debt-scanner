@@ -15,7 +15,7 @@ def load_patterns(patterns_file):
             for category in patterns:
                 for rule in patterns[category]:
                     try:
-                        rule['regex'] = re.compile(rule['pattern'])
+                        rule['regex'] = re.compile(rule['pattern'], re.IGNORECASE)
                     except re.error as e:
                         print(f"Warning: Invalid regex for pattern '{rule['pattern']}': {e}", file=sys.stderr)
                         rule['regex'] = None
