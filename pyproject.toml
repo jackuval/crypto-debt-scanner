@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crypto-debt-scanner"
-version = "0.6.0"
+version = "0.7.0"
 authors = [
     { name="Jack Uval", email="hello@jackuval.xyz" },
 ]

@@ -4,15 +4,9 @@ A simple, fast, and configurable CLI tool to scan your codebase for outdated and
 
 ## The Problem
 
-Over time, cryptographic standards evolve. Algorithms and protocols that were once considered secure (like MD5, SHA1, or raw RSA encryption) are now known to be vulnerable. This "crypto-debt" can silently accumulate in a codebase, creating significant security risks that may not be apparent until it's too late.
-
-The "harvest now, decrypt later" threat from future quantum computers makes this problem even more urgent. Code written today using classical cryptography may be storing data that can be captured now and easily decrypted in the future.
-
-This tool helps you identify this crypto-debt so you can prioritize and fix it.
+Over time, cryptographic standards evolve. Algorithms and protocols that were once considered secure (like MD5 or SHA1) are now known to be vulnerable. This "crypto-debt" can silently accumulate in a codebase, creating significant security risks that may not be apparent until it's too late. This tool helps you identify this debt so you can prioritize and fix it.
 
 ## Installation
-
-This tool will be available on PyPI soon. For now, you can install it directly from the source:
 
 ```bash
 # Clone the repository
@@ -25,40 +19,39 @@ pip install .
 
 ## Usage
 
-Run the scanner on any directory. You can specify the output format (`text` or `json`) and provide a custom patterns file.
+Run the scanner on any directory with various flags to customize the scan and output.
 
 ```bash
-# Default text output
+# Default text output, shows all severities
 crypto-debt-scanner /path/to/your/project
 
-# JSON output for machine processing
-crypto-debt-scanner /path/to/your/project --format json
+# Only show High severity issues
+crypto-debt-scanner /path/to/your/project --min-severity High
 
-# Using a custom patterns file
-crypto-debt-scanner /path/to/your/project --patterns /path/to/my_patterns.json
+# Only scan Python files and output as JSON
+crypto-debt-scanner /path/to/your/project --include .py --format json
+
+# Scan all files except Markdown
+crypto-debt-scanner /path/to/your/project --exclude .md
 ```
+
+### Filtering Options
+
+-   `--min-severity [High|Medium|Low]`: Only show findings with the specified severity or higher. Default is `Low`.
+-   `--include [.ext1 .ext2]`: Only scan files with these extensions.
+-   `--exclude [.ext1 .ext2]`: Exclude files with these extensions from the scan.
 
 ### Output Formats
 
 -   `text` (default): A human-readable report printed to the console.
--   `json`: A machine-readable JSON object, ideal for integrating with CI/CD pipelines or other tools.
+-   `json`: A machine-readable JSON object, ideal for integrating with CI/CD pipelines.
 
 ### Customizing Patterns
 
-The scanner's real power is its configurable patterns. It uses a `patterns.json` file by default, but you can provide your own. The JSON file should be structured by category, with a list of rules for each. Each rule must have a `pattern` (a valid Python regular expression) and a `description`, and can optionally have a `severity` (`High`, `Medium`, `Low`).
+You can provide your own `patterns.json` file to search for custom patterns. Each rule must have a `pattern` (a valid Python regular expression) and a `description`.
 
-#### Example `patterns.json`
-
-```json
-{
-  "My Custom Category": [
-    {
-      "pattern": "MyInternalLegacyFunction",
-      "description": "This is a deprecated internal function that should be replaced.",
-      "severity": "High"
-    }
-  ]
-}
+```bash
+crypto-debt-scanner /path/to/your/project --patterns /path/to/my_patterns.json
 ```
 
 ## Disclaimer

@@ -11,7 +11,6 @@ def load_patterns(patterns_file):
     try:
         with open(patterns_file, 'r') as f:
             patterns = json.load(f)
-            # Pre-compile regex patterns for efficiency
             for category in patterns:
                 for rule in patterns[category]:
                     try:
@@ -47,7 +46,7 @@ def scan_file(file_path, patterns):
 
 def print_text_report(all_findings):
     """Prints a human-readable text report to stdout."""
-    print("--- Crypto-Debt Scanner Report (v0.6.0) ---")
+    print("--- Crypto-Debt Scanner Report (v0.7.0) ---")
     severity_order = {"High": 0, "Medium": 1, "Low": 2, "N/A": 3}
     sorted_findings = sorted(all_findings, key=lambda x: severity_order.get(x['severity'], 99))
 
@@ -78,10 +77,13 @@ def print_json_report(all_findings):
 
 def main():
     """Main function to parse arguments and orchestrate the scan."""
-    parser = argparse.ArgumentParser(description="Scan a codebase for outdated cryptographic patterns using regex.")
+    parser = argparse.ArgumentParser(description="Scan a codebase for outdated cryptographic patterns.")
     parser.add_argument("directory", help="The directory to scan.")
-    parser.add_argument("--patterns", default=DEFAULT_PATTERNS_FILE, help=f"Path to a custom patterns JSON file. (default: {DEFAULT_PATTERNS_FILE})")
+    parser.add_argument("--patterns", default=DEFAULT_PATTERNS_FILE, help="Path to a custom patterns JSON file.")
     parser.add_argument("--format", choices=['text', 'json'], default='text', help="The output format.")
+    parser.add_argument("--min-severity", choices=['High', 'Medium', 'Low'], default='Low', help="Minimum severity to report.")
+    parser.add_argument("--include", nargs='*', help="File extensions to include (e.g., .py .js).")
+    parser.add_argument("--exclude", nargs='*', help="File extensions to exclude (e.g., .md .txt).")
     args = parser.parse_args()
 
     patterns = load_patterns(args.patterns)
@@ -97,24 +99,35 @@ def main():
         if '.git' in root:
             continue
         for file in files:
-            if file.endswith('patterns.json'):
+            if args.include and not any(file.endswith(ext) for ext in args.include):
                 continue
+            if args.exclude and any(file.endswith(ext) for ext in args.exclude):
+                continue
+
             file_path = os.path.join(root, file)
             findings = scan_file(file_path, patterns)
             if findings:
                 all_findings.extend(findings)
 
-    if not all_findings:
+    severity_map = {'High': 0, 'Medium': 1, 'Low': 2}
+    min_severity_level = severity_map.get(args.min_severity, 2)
+
+    filtered_findings = [
+        f for f in all_findings
+        if severity_map.get(f['severity'], 99) <= min_severity_level
+    ]
+
+    if not filtered_findings:
         if args.format == 'text':
-            print("Scan complete. No vulnerable patterns found.")
+            print("Scan complete. No matching issues found.")
         elif args.format == 'json':
             print_json_report([])
         return
 
     if args.format == 'text':
-        print_text_report(all_findings)
+        print_text_report(filtered_findings)
     elif args.format == 'json':
-        print_json_report(all_findings)
+        print_json_report(filtered_findings)
 
 if __name__ == "__main__":
     main()
