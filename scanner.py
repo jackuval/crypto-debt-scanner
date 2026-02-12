@@ -47,7 +47,7 @@ def scan_file(file_path, patterns):
 
 def print_text_report(all_findings):
     """Prints a human-readable text report to stdout."""
-    print("--- Crypto-Debt Scanner Report (v0.4.0) ---")
+    print("--- Crypto-Debt Scanner Report (v0.6.0) ---")
     severity_order = {"High": 0, "Medium": 1, "Low": 2, "N/A": 3}
     sorted_findings = sorted(all_findings, key=lambda x: severity_order.get(x['severity'], 99))
 
