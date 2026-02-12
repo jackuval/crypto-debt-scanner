@@ -25,23 +25,27 @@ pip install .
 
 ## Usage
 
-Once installed, you can run the scanner on any directory:
+Run the scanner on any directory. You can specify the output format (`text` or `json`) and provide a custom patterns file.
 
 ```bash
+# Default text output
 crypto-debt-scanner /path/to/your/project
-```
 
-It will recursively scan all files in the directory and print a report of any vulnerable patterns it finds, sorted by severity.
+# JSON output for machine processing
+crypto-debt-scanner /path/to/your/project --format json
 
-### Customizing Patterns
-
-The real power of the scanner comes from its configurable patterns. It uses a `patterns.json` file by default, but you can provide your own custom JSON file using the `--patterns` flag:
-
-```bash
+# Using a custom patterns file
 crypto-debt-scanner /path/to/your/project --patterns /path/to/my_patterns.json
 ```
 
-The JSON file should be structured by category, with a list of rules for each. Each rule must have a `pattern` (a valid Python regular expression), a `description`, and can optionally have a `severity` (`High`, `Medium`, `Low`).
+### Output Formats
+
+-   `text` (default): A human-readable report printed to the console.
+-   `json`: A machine-readable JSON object, ideal for integrating with CI/CD pipelines or other tools.
+
+### Customizing Patterns
+
+The scanner's real power is its configurable patterns. It uses a `patterns.json` file by default, but you can provide your own. The JSON file should be structured by category, with a list of rules for each. Each rule must have a `pattern` (a valid Python regular expression) and a `description`, and can optionally have a `severity` (`High`, `Medium`, `Low`).
 
 #### Example `patterns.json`
 
@@ -57,28 +61,9 @@ The JSON file should be structured by category, with a list of rules for each. E
 }
 ```
 
-### Example Output
-
-```
---- Crypto-Debt Scanner Report ---
-
-[!] Severity: High | Category: Hashing
-  Description: MD5 is a broken hash function and should not be used for security purposes.
-  Pattern:     'MD5'
-  Location:    /path/to/your/project/legacy_code.py:42
-
-[!] Severity: Medium | Category: Unsafe Functions (C/C++)
-  Description: sprintf is not buffer-safe and can lead to buffer overflow vulnerabilities. Use snprintf.
-  Pattern:     'sprintf'
-  Location:    /path/to/your/project/utils/helpers.c:112
-
---- End of Report ---
-Total issues found: 2
-```
-
 ## Disclaimer
 
-This is an early-stage tool and is not exhaustive. It uses a simple string-based search for the patterns you provide. It is intended as a first-pass, awareness-raising tool, not a comprehensive security audit solution like a SAST scanner.
+This is an early-stage tool. It uses regular expressions to find patterns and is intended as a first-pass, awareness-raising tool, not a comprehensive security audit solution like a SAST scanner.
 
 ## Contributing
 
