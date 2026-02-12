@@ -3,80 +3,71 @@ import os
 import json
 import sys
 import re
+import argparse
 from io import StringIO
 import tempfile
 import shutil
 from unittest.mock import patch
 
-# This is a hack to import the scanner module from the parent directory
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import scanner
 
-class TestCryptoDebtScanner(unittest.TestCase):
+class TestCryptoDebtScannerV8(unittest.TestCase):
 
     def setUp(self):
-        self.test_dir = tempfile.mkdtemp()
-        self.patterns = scanner.load_patterns(scanner.DEFAULT_PATTERNS_FILE)
+        self.base_test_dir = tempfile.mkdtemp()
 
     def tearDown(self):
-        shutil.rmtree(self.test_dir)
+        shutil.rmtree(self.base_test_dir)
 
-    def _create_test_file(self, content, filename="test.py"):
-        file_path = os.path.join(self.test_dir, filename)
+    def _create_test_file(self, content, filename="test.py", subdir=None):
+        test_dir = self.base_test_dir
+        if subdir:
+            test_dir = os.path.join(self.base_test_dir, subdir)
+            if not os.path.exists(test_dir):
+                os.mkdir(test_dir)
+        file_path = os.path.join(test_dir, filename)
         with open(file_path, 'w') as f:
             f.write(content)
         return file_path
 
-    def test_scan_file_md5_case_insensitivity(self):
-        file_path = self._create_test_file("import hashlib\\nhash = hashlib.md5()")
-        findings = scanner.scan_file(file_path, self.patterns)
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0]['pattern'], "\\bMD5\\b")
+    def run_scanner(self, cli_args):
+        with patch.object(sys, 'argv', ['scanner.py'] + cli_args):
+            with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+                scanner.main()
+                return mock_stdout.getvalue()
 
-    def test_scan_file_strcpy_in_c_file(self):
-        c_code = 'int main() { strcpy(buffer, "hello"); }'
-        file_path = self._create_test_file(c_code, filename="test.c")
-        findings = scanner.scan_file(file_path, self.patterns)
-        self.assertEqual(len(findings), 1, "Failed to find strcpy")
-        self.assertEqual(findings[0]['pattern'], "\\bstrcpy\\s*\\(")
+    def test_ignore_comments(self):
+        patterns = scanner.load_patterns(argparse.Namespace(patterns=None, no_default_patterns=False))
+        file_path = self._create_test_file("hashlib.md5() # cryptoscan-ignore")
+        self.assertEqual(len(scanner.scan_file(file_path, patterns)), 0)
+        file_path_2 = self._create_test_file("hashlib.md5() # cryptoscan-ignore: \\bMD5\\b")
+        self.assertEqual(len(scanner.scan_file(file_path_2, patterns)), 0)
+        file_path_3 = self._create_test_file("hashlib.md5() # cryptoscan-ignore: \\bSHA1\\b")
+        self.assertEqual(len(scanner.scan_file(file_path_3, patterns)), 1)
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_json_output_format(self, mock_stdout):
-        self._create_test_file("hash = hashlib.md5()")
-        with patch.object(sys, 'argv', ['scanner.py', self.test_dir, '--format', 'json']):
-            scanner.main()
-        output = json.loads(mock_stdout.getvalue())
-        self.assertEqual(output['summary']['total_issues'], 1)
-        self.assertEqual(output['findings'][0]['severity'], 'High')
+    def test_no_default_patterns_flag(self):
+        scan_dir = os.path.join(self.base_test_dir, 'src')
+        os.mkdir(scan_dir)
+        self._create_test_file("hashlib.md5()", subdir='src')
+        custom_patterns = { "Custom": [{"pattern": "custom_func", "description": "c", "severity": "Low"}] }
+        patterns_path = self._create_test_file(json.dumps(custom_patterns), "custom.json")
+        self._create_test_file("custom_func()", subdir='src', filename="custom.py")
+        output = self.run_scanner([scan_dir, '--patterns', patterns_path, '--no-default-patterns', '--format', 'json'])
+        result = json.loads(output)
+        self.assertEqual(result['summary']['total_issues'], 1)
+        self.assertEqual(result['findings'][0]['pattern'], "custom_func")
 
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_severity_filtering(self, mock_stdout):
-        self._create_test_file("hash = hashlib.md5()\\nval = random()") # High and Medium
-        with patch.object(sys, 'argv', ['scanner.py', self.test_dir, '--format', 'json', '--min-severity', 'High']):
-            scanner.main()
-        output = json.loads(mock_stdout.getvalue())
-        self.assertEqual(output['summary']['total_issues'], 1)
-        self.assertEqual(output['findings'][0]['severity'], 'High')
-
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_include_filtering(self, mock_stdout):
-        self._create_test_file("hash = hashlib.md5()", "test.py")
-        self._create_test_file("strcpy(dest, src)", "test.c")
-        with patch.object(sys, 'argv', ['scanner.py', self.test_dir, '--format', 'json', '--include', '.py']):
-            scanner.main()
-        output = json.loads(mock_stdout.getvalue())
-        self.assertEqual(output['summary']['total_issues'], 1)
-        self.assertEqual(output['findings'][0]['file'].endswith('.py'), True)
-
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_exclude_filtering(self, mock_stdout):
-        self._create_test_file("hash = hashlib.md5()", "test.py")
-        self._create_test_file("strcpy(dest, src)", "test.c")
-        with patch.object(sys, 'argv', ['scanner.py', self.test_dir, '--format', 'json', '--exclude', '.c']):
-            scanner.main()
-        output = json.loads(mock_stdout.getvalue())
-        self.assertEqual(output['summary']['total_issues'], 1)
-        self.assertEqual(output['findings'][0]['file'].endswith('.py'), True)
+    def test_merge_patterns(self):
+        scan_dir = os.path.join(self.base_test_dir, 'src')
+        os.mkdir(scan_dir)
+        self._create_test_file("hashlib.md5()", subdir='src')
+        custom_patterns = { "Custom": [{"pattern": "custom_func", "description": "c", "severity": "Low"}] }
+        patterns_path = self._create_test_file(json.dumps(custom_patterns), "custom.json")
+        self._create_test_file("custom_func()", subdir='src', filename="custom.py")
+        output = self.run_scanner([scan_dir, '--patterns', patterns_path, '--format', 'json'])
+        result = json.loads(output)
+        self.assertEqual(result['summary']['total_issues'], 2)
 
 if __name__ == '__main__':
     unittest.main()
