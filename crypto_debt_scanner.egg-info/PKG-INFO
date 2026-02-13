@@ -1,3 +1,18 @@
+Metadata-Version: 2.4
+Name: crypto-debt-scanner
+Version: 1.0.0
+Summary: A simple, fast, and configurable CLI tool to scan your codebase for outdated and vulnerable cryptographic patterns.
+Author-email: Jack Uval <hello@jackuval.xyz>
+Project-URL: Homepage, https://github.com/jack-uval/crypto-debt-scanner
+Project-URL: Bug Tracker, https://github.com/jack-uval/crypto-debt-scanner/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Security
+Classifier: Topic :: Software Development
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+
 # Crypto-Debt Scanner v1.0.0
 
 A simple, fast, and configurable CLI tool to scan your codebase for outdated and vulnerable cryptographic patterns.

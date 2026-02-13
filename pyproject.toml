@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crypto-debt-scanner"
-version = "0.8.0"
+version = "1.0.0"
 authors = [
     { name="Jack Uval", email="hello@jackuval.xyz" },
 ]
-description = "A simple CLI tool to scan codebases for outdated and vulnerable cryptographic patterns."
+description = "A simple, fast, and configurable CLI tool to scan your codebase for outdated and vulnerable cryptographic patterns."
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
