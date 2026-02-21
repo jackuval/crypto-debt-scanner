@@ -39,20 +39,26 @@ class TestCryptoDebtScannerV8(unittest.TestCase):
 
     def test_ignore_comments(self):
         patterns = scanner.load_patterns(argparse.Namespace(patterns=None, no_default_patterns=False))
-        file_path = self._create_test_file("hashlib.md5() # cryptoscan-ignore")
-        self.assertEqual(len(scanner.scan_file(file_path, patterns)), 0)
+        # Test generic ignore
+        file_path_1 = self._create_test_file("hashlib.md5() # cryptoscan-ignore")
+        self.assertEqual(len(scanner.scan_file(file_path_1, patterns)), 0)
+
+        # Test specific ignore
         file_path_2 = self._create_test_file("hashlib.md5() # cryptoscan-ignore: \\bMD5\\b")
         self.assertEqual(len(scanner.scan_file(file_path_2, patterns)), 0)
+
+        # Test that a mismatched specific ignore does NOT suppress the finding
         file_path_3 = self._create_test_file("hashlib.md5() # cryptoscan-ignore: \\bSHA1\\b")
         self.assertEqual(len(scanner.scan_file(file_path_3, patterns)), 1)
 
     def test_no_default_patterns_flag(self):
         scan_dir = os.path.join(self.base_test_dir, 'src')
         os.mkdir(scan_dir)
-        self._create_test_file("hashlib.md5()", subdir='src')
+        self._create_test_file("import hashlib; hashlib.md5()", subdir='src')
         custom_patterns = { "Custom": [{"pattern": "custom_func", "description": "c", "severity": "Low"}] }
         patterns_path = self._create_test_file(json.dumps(custom_patterns), "custom.json")
         self._create_test_file("custom_func()", subdir='src', filename="custom.py")
+
         output = self.run_scanner([scan_dir, '--patterns', patterns_path, '--no-default-patterns', '--format', 'json'])
         result = json.loads(output)
         self.assertEqual(result['summary']['total_issues'], 1)
@@ -61,10 +67,11 @@ class TestCryptoDebtScannerV8(unittest.TestCase):
     def test_merge_patterns(self):
         scan_dir = os.path.join(self.base_test_dir, 'src')
         os.mkdir(scan_dir)
-        self._create_test_file("hashlib.md5()", subdir='src')
+        self._create_test_file("import hashlib; hashlib.md5()", subdir='src')
         custom_patterns = { "Custom": [{"pattern": "custom_func", "description": "c", "severity": "Low"}] }
         patterns_path = self._create_test_file(json.dumps(custom_patterns), "custom.json")
         self._create_test_file("custom_func()", subdir='src', filename="custom.py")
+
         output = self.run_scanner([scan_dir, '--patterns', patterns_path, '--format', 'json'])
         result = json.loads(output)
         self.assertEqual(result['summary']['total_issues'], 2)
